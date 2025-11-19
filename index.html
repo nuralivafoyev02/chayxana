@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choyxona hisob-Kitob 🥂</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --border: #e5e7eb;
+            --result-bg: #111827;
+        }
+
+        body.dark-mode {
+            --bg: #111827;
+            --card: #1f2937;
+            --text: #f9fafb;
+            --border: #374151;
+            --result-bg: #000000;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            transition: 0.3s;
+        }
+
+        .container {
+            background: var(--card);
+            width: 100%;
+            max-width: 450px;
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .theme-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        h1 { text-align: center; margin-bottom: 25px; color: var(--primary); font-weight: 800; }
+        
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: 0.3s;
+            margin-bottom: 15px;
+        }
+        input:focus { border-color: var(--primary); outline: none; }
+
+        .row { display: flex; gap: 10px; }
+        .row input { flex: 1; }
+
+        button.main-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: 0.2s;
+        }
+        button.main-btn:active { transform: scale(0.98); }
+        button.main-btn.edit-mode { background: var(--warning); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); }
+
+        .items-list {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding-right: 5px;
+        }
+        .items-list::-webkit-scrollbar { width: 5px; }
+        .items-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: var(--bg);
+            border-radius: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .actions { display: flex; gap: 10px; align-items: center; }
+        .icon-btn { cursor: pointer; font-size: 1.1rem; padding: 5px; transition: 0.2s; }
+        .edit-btn { color: var(--warning); }
+        .delete-btn { color: var(--danger); }
+        .icon-btn:hover { transform: scale(1.2); }
+
+        .clear-all-btn {
+            width: 100%;
+            padding: 10px;
+            background: none;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: none;
+            margin-bottom: 20px;
+        }
+        .clear-all-btn:hover { background: var(--danger); color: white; }
+
+        .settings {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            margin-top: -5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .checkbox-wrapper input { width: 20px; height: 20px; margin: 0; margin-right: 10px; cursor: pointer; }
+        .checkbox-wrapper span { font-weight: 600; }
+
+        /* --- TOOLTIP STYLES (YANGI QISM) --- */
+        .info-icon {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 22px;
+            height: 22px;
+            background: #9CA3AF;
+            color: white;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: bold;
+            font-style: normal;
+            margin-left: 8px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .tooltip-text {
+            visibility: hidden;
+            width: 220px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 10px;
+            position: absolute;
+            z-index: 10;
+            bottom: 135%; /* Icon tepasida chiqadi */
+            left: 50%;
+            margin-left: -110px; /* Markazlashtirish */
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            font-weight: normal;
+            line-height: 1.4;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+
+        /* Hover yoki click qilinganda ko'rinadi */
+        .info-icon:hover .tooltip-text, 
+        .info-icon:active .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        /* ----------------------------------- */
+
+        .result-box {
+            background: var(--result-bg);
+            color: white;
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .big-price { font-size: 2.2rem; font-weight: 800; color: #34D399; margin: 10px 0; }
+        
+        .share-btn {
+            margin-top: 20px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: 0.2s;
+        }
+        .share-btn:hover { background: rgba(255,255,255,0.25); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <button class="theme-btn" onclick="toggleTheme()" id="themeIcon">🌙</button>
+        <h1>Teng bo'lishamiz 🚀</h1>
+
+        <div class="input-group">
+            <div class="row">
+                <input type="text" id="itemName" placeholder="Nima yedinglar?">
+                <input type="number" id="itemPrice" placeholder="Narxi">
+            </div>
+        </div>
+        <button class="main-btn" id="actionBtn" onclick="handleAction()">+ Qo'shish</button>
+
+        <div class="items-list" id="itemsList"></div>
+        <button class="clear-all-btn" id="clearAllBtn" onclick="clearAll()">🗑️ Ro'yxatni tozalash</button>
+
+        <div class="settings">
+            <div class="row">
+                <div>
+                    <label style="display:block;margin-bottom:5px;font-weight:600">Odam soni 👥</label>
+                    <input type="number" id="peopleCount" value="1" min="1" oninput="calculateTotal()">
+                </div>
+                <div>
+                    <label style="display:block;margin-bottom:5px;font-weight:600">Xizmat (%) 📊</label>
+                    <input type="number" id="serviceCharge" value="10" oninput="calculateTotal()">
+                </div>
+            </div>
+            
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="birthdayMode" onchange="calculateTotal()">
+                <label for="birthdayMode" style="margin:0; cursor:pointer; font-weight:600">Tug'ilgan kun🥳</label>
+                
+                <i class="info-icon">i
+                    <span class="tooltip-text">
+                        Agar bu yoqilsa, umumiy summani tug'ilgan kun egasidan tashqari qolganlar bo'lishib to'laydi.
+                    </span>
+                </i>
+            </div>
+        </div>
+
+        <div class="result-box">
+            <p style="opacity:0.7; font-size:0.9rem">Har bir kishiga:</p>
+            <div class="big-price" id="perPerson">0</div>
+            
+            <div style="display:flex; justify-content:space-between; font-size:0.85rem; opacity:0.6; margin-top:10px;">
+                <span>Jami ovqat: <b id="foodTotal">0</b></span>
+                <span>Xizmat: <b id="serviceTotal">0</b></span>
+            </div>
+            <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
+                Chek: <b id="grandTotal" style="color:#fff">0</b>
+            </div>
+
+            <button class="share-btn" onclick="copyToClipboard()">🚀 Telegramga jo'natish</button>
+        </div>
+    </div>
+
+    <script>
+        let items = [];
+        let editIndex = -1;
+
+        window.onload = () => {
+            loadData();
+            renderList();
+            calculateTotal();
+        };
+
+        const formatMoney = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+        function handleAction() {
+            if (editIndex === -1) addItem();
+            else updateItem();
+        }
+
+        function addItem() {
+            const nameInput = document.getElementById('itemName');
+            const priceInput = document.getElementById('itemPrice');
+            if (nameInput.value && priceInput.value > 0) {
+                items.push({ name: nameInput.value, price: parseFloat(priceInput.value) });
+                resetInputs();
+                saveData();
+                renderList();
+                calculateTotal();
+            }
+        }
+
+        function updateItem() {
+            const nameInput = document.getElementById('itemName');
+            const priceInput = document.getElementById('itemPrice');
+            if (nameInput.value && priceInput.value > 0) {
+                items[editIndex] = { name: nameInput.value, price: parseFloat(priceInput.value) };
+                editIndex = -1;
+                document.getElementById('actionBtn').innerText = "+ Qo'shish";
+                document.getElementById('actionBtn').classList.remove('edit-mode');
+                resetInputs();
+                saveData();
+                renderList();
+                calculateTotal();
+            }
+        }
+
+        function editItem(index) {
+            document.getElementById('itemName').value = items[index].name;
+            document.getElementById('itemPrice').value = items[index].price;
+            editIndex = index;
+            const btn = document.getElementById('actionBtn');
+            btn.innerText = "💾 Saqlash";
+            btn.classList.add('edit-mode');
+            document.getElementById('itemName').focus();
+        }
+
+        function removeItem(index) {
+            if (index === editIndex) {
+                editIndex = -1;
+                document.getElementById('actionBtn').innerText = "+ Qo'shish";
+                document.getElementById('actionBtn').classList.remove('edit-mode');
+                resetInputs();
+            }
+            items.splice(index, 1);
+            saveData();
+            renderList();
+            calculateTotal();
+        }
+
+        function clearAll() {
+            if(confirm("Rostdan ham hamma narsani o'chirmoqchimisiz?")) {
+                items = [];
+                editIndex = -1;
+                document.getElementById('actionBtn').innerText = "+ Qo'shish";
+                document.getElementById('actionBtn').classList.remove('edit-mode');
+                resetInputs();
+                saveData();
+                renderList();
+                calculateTotal();
+            }
+        }
+
+        function resetInputs() {
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+        }
+
+        function renderList() {
+            const listEl = document.getElementById('itemsList');
+            const clearBtn = document.getElementById('clearAllBtn');
+            clearBtn.style.display = items.length > 3 ? 'block' : 'none';
+
+            if (items.length === 0) {
+                listEl.innerHTML = '<p style="text-align:center; opacity:0.5; padding:10px;">Hozircha bo\'sh...</p>';
+                return;
+            }
+            
+            listEl.innerHTML = '';
+            items.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <span style="font-weight:500">${item.name}</span>
+                    <div class="actions">
+                        <span>${formatMoney(item.price)}</span>
+                        <span class="icon-btn edit-btn" onclick="editItem(${index})">✏️</span>
+                        <span class="icon-btn delete-btn" onclick="removeItem(${index})">&times;</span>
+                    </div>
+                `;
+                listEl.appendChild(div);
+            });
+        }
+
+        function calculateTotal() {
+            let foodSum = items.reduce((acc, item) => acc + item.price, 0);
+            let servicePercent = parseFloat(document.getElementById('serviceCharge').value) || 0;
+            let people = parseFloat(document.getElementById('peopleCount').value) || 1;
+            let isBirthday = document.getElementById('birthdayMode').checked;
+
+            let payers = isBirthday ? (people - 1) : people;
+            if (payers < 1) payers = 1;
+
+            let serviceAmount = foodSum * (servicePercent / 100);
+            let totalSum = foodSum + serviceAmount;
+            let perPerson = totalSum / payers;
+
+            document.getElementById('foodTotal').innerText = formatMoney(foodSum);
+            document.getElementById('serviceTotal').innerText = formatMoney(serviceAmount);
+            document.getElementById('grandTotal').innerText = formatMoney(totalSum) + " so'm";
+            document.getElementById('perPerson').innerText = formatMoney(Math.ceil(perPerson)) + " so'm";
+
+            saveData();
+        }
+
+        function saveData() {
+            localStorage.setItem('choyxona_items_v4', JSON.stringify(items));
+            localStorage.setItem('choyxona_people_v4', document.getElementById('peopleCount').value);
+            localStorage.setItem('choyxona_service_v4', document.getElementById('serviceCharge').value);
+            localStorage.setItem('choyxona_birthday_v4', document.getElementById('birthdayMode').checked);
+            localStorage.setItem('choyxona_theme_v4', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+
+        function loadData() {
+            if(localStorage.getItem('choyxona_items_v4')) items = JSON.parse(localStorage.getItem('choyxona_items_v4'));
+            if(localStorage.getItem('choyxona_people_v4')) document.getElementById('peopleCount').value = localStorage.getItem('choyxona_people_v4');
+            if(localStorage.getItem('choyxona_service_v4')) document.getElementById('serviceCharge').value = localStorage.getItem('choyxona_service_v4');
+            if(localStorage.getItem('choyxona_birthday_v4') === 'true') document.getElementById('birthdayMode').checked = true;
+            if(localStorage.getItem('choyxona_theme_v4') === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeIcon').innerText = '☀️';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            document.getElementById('themeIcon').innerText = isDark ? '☀️' : '🌙';
+            saveData();
+        }
+
+        function copyToClipboard() {
+            if (items.length === 0) return alert("Hisob bo'sh!");
+            let people = document.getElementById('peopleCount').value;
+            let total = document.getElementById('grandTotal').innerText;
+            let perPerson = document.getElementById('perPerson').innerText;
+            let isBirthday = document.getElementById('birthdayMode').checked;
+
+            let text = `🚀 *Choyxona Checki*\n\n`;
+            items.forEach(item => text += `▫️ ${item.name}: ${formatMoney(item.price)}\n`);
+            
+            text += `\n------------------\n`;
+            text += `👥 Jami odam: ${people} ta\n`;
+            if(isBirthday) text += `🎂 Tug'ilgan kun (1 kishi tekin)\n`;
+            text += `📊 Xizmat haqqi: ${document.getElementById('serviceCharge').value}%\n`;
+            text += `💰 Jami summa: ${total}\n\n`;
+            text += `💸 *KISHI BOSHIGA: ${perPerson}*`;
+
+            navigator.clipboard.writeText(text).then(() => alert("Nusxalandi! Guruhga tashlang."));
+        }
+    </script>
+</body>
+</html>
