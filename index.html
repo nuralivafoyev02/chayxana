@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Choyxona hisob-Kitob 🥂</title>
+    <link rel="icon" href="/public/cheff.jpg">
+    <title>Teng bo'lishamiz! 🚀</title>
     <style>
         :root {
             --primary: #6366f1;
@@ -14,7 +15,7 @@
             --card: #ffffff;
             --text: #1f2937;
             --border: #e5e7eb;
-            --result-bg: #111827;
+            --result-bg: #0d1b3b;
         }
 
         body.dark-mode {
@@ -151,7 +152,7 @@
         .checkbox-wrapper input { width: 20px; height: 20px; margin: 0; margin-right: 10px; cursor: pointer; }
         .checkbox-wrapper span { font-weight: 600; }
 
-        /* --- TOOLTIP STYLES (YANGI QISM) --- */
+        /* Tooltip */
         .info-icon {
             display: inline-flex;
             justify-content: center;
@@ -179,15 +180,12 @@
             padding: 10px;
             position: absolute;
             z-index: 10;
-            bottom: 135%; /* Icon tepasida chiqadi */
+            bottom: 135%;
             left: 50%;
-            margin-left: -110px; /* Markazlashtirish */
+            margin-left: -110px;
             opacity: 0;
             transition: opacity 0.3s;
             font-size: 0.8rem;
-            font-weight: normal;
-            line-height: 1.4;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             pointer-events: none;
         }
 
@@ -202,13 +200,10 @@
             border-color: #333 transparent transparent transparent;
         }
 
-        /* Hover yoki click qilinganda ko'rinadi */
-        .info-icon:hover .tooltip-text, 
-        .info-icon:active .tooltip-text {
+        .info-icon:hover .tooltip-text, .info-icon:active .tooltip-text {
             visibility: visible;
             opacity: 1;
         }
-        /* ----------------------------------- */
 
         .result-box {
             background: var(--result-bg);
@@ -241,12 +236,12 @@
 
     <div class="container">
         <button class="theme-btn" onclick="toggleTheme()" id="themeIcon">🌙</button>
-        <h1>Teng bo'lishamiz</h1>
+        <h1>Teng bo'lishamiz!</h1>
 
         <div class="input-group">
             <div class="row">
                 <input type="text" id="itemName" placeholder="Nima yedinglar?">
-                <input type="tel" id="itemPrice" placeholder="Narxi">
+                <input type="text" inputmode="numeric" id="itemPrice" placeholder="Narxi" oninput="formatInput(this)">
             </div>
         </div>
         <button class="main-btn" id="actionBtn" onclick="handleAction()">+ Qo'shish</button>
@@ -268,8 +263,7 @@
             
             <div class="checkbox-wrapper">
                 <input type="checkbox" id="birthdayMode" onchange="calculateTotal()">
-                <label for="birthdayMode" style="margin:0; cursor:pointer; font-weight:600">Tug'ilgan kun🥳</label>
-                
+                <label for="birthdayMode" style="margin:0; cursor:pointer; font-weight:600">Tug'ilgan kun (bepul)</label>
                 <i class="info-icon">i
                     <span class="tooltip-text">
                         Agar bu yoqilsa, umumiy summani tug'ilgan kun egasidan tashqari qolganlar bo'lishib to'laydi.
@@ -304,6 +298,25 @@
             calculateTotal();
         };
 
+        // YANGI QO'SHILGAN FUNKSIYA: Inputga yozilayotganda bo'sh joy qo'shish
+        function formatInput(input) {
+            // 1. Faqat raqamlarni qoldiramiz (harflar va belgilarni o'chiramiz)
+            let value = input.value.replace(/\D/g, "");
+            
+            // 2. Raqamni bo'sh joy bilan formatlaymiz
+            if (value) {
+                input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+            } else {
+                input.value = "";
+            }
+        }
+
+        // Formatlangan stringni (masalan: "120 000") haqiqiy raqamga (120000) aylantirish
+        function parseFormattedNumber(str) {
+            if (!str) return 0;
+            return parseFloat(str.replace(/\s/g, '')); // Bo'sh joylarni olib tashlab parse qilamiz
+        }
+
         const formatMoney = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 
         function handleAction() {
@@ -314,8 +327,12 @@
         function addItem() {
             const nameInput = document.getElementById('itemName');
             const priceInput = document.getElementById('itemPrice');
-            if (nameInput.value && priceInput.value > 0) {
-                items.push({ name: nameInput.value, price: parseFloat(priceInput.value) });
+            
+            // O'zgarish: narxni parseFormattedNumber bilan olamiz
+            const price = parseFormattedNumber(priceInput.value);
+
+            if (nameInput.value && price > 0) {
+                items.push({ name: nameInput.value, price: price });
                 resetInputs();
                 saveData();
                 renderList();
@@ -326,8 +343,10 @@
         function updateItem() {
             const nameInput = document.getElementById('itemName');
             const priceInput = document.getElementById('itemPrice');
-            if (nameInput.value && priceInput.value > 0) {
-                items[editIndex] = { name: nameInput.value, price: parseFloat(priceInput.value) };
+            const price = parseFormattedNumber(priceInput.value);
+
+            if (nameInput.value && price > 0) {
+                items[editIndex] = { name: nameInput.value, price: price };
                 editIndex = -1;
                 document.getElementById('actionBtn').innerText = "+ Qo'shish";
                 document.getElementById('actionBtn').classList.remove('edit-mode');
@@ -340,12 +359,15 @@
 
         function editItem(index) {
             document.getElementById('itemName').value = items[index].name;
-            document.getElementById('itemPrice').value = items[index].price;
+            
+            // O'zgarish: narxni inputga qo'yganda ham formatlab qo'yamiz
+            document.getElementById('itemPrice').value = formatMoney(items[index].price);
+            
             editIndex = index;
             const btn = document.getElementById('actionBtn');
             btn.innerText = "💾 Saqlash";
             btn.classList.add('edit-mode');
-            document.getElementById('itemName').focus();
+            document.getElementById('itemName').focus(); // Nomga fokus qaratish
         }
 
         function removeItem(index) {
@@ -427,19 +449,19 @@
         }
 
         function saveData() {
-            localStorage.setItem('choyxona_items_v4', JSON.stringify(items));
-            localStorage.setItem('choyxona_people_v4', document.getElementById('peopleCount').value);
-            localStorage.setItem('choyxona_service_v4', document.getElementById('serviceCharge').value);
-            localStorage.setItem('choyxona_birthday_v4', document.getElementById('birthdayMode').checked);
-            localStorage.setItem('choyxona_theme_v4', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+            localStorage.setItem('choyxona_items_v5', JSON.stringify(items));
+            localStorage.setItem('choyxona_people_v5', document.getElementById('peopleCount').value);
+            localStorage.setItem('choyxona_service_v5', document.getElementById('serviceCharge').value);
+            localStorage.setItem('choyxona_birthday_v5', document.getElementById('birthdayMode').checked);
+            localStorage.setItem('choyxona_theme_v5', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
         }
 
         function loadData() {
-            if(localStorage.getItem('choyxona_items_v4')) items = JSON.parse(localStorage.getItem('choyxona_items_v4'));
-            if(localStorage.getItem('choyxona_people_v4')) document.getElementById('peopleCount').value = localStorage.getItem('choyxona_people_v4');
-            if(localStorage.getItem('choyxona_service_v4')) document.getElementById('serviceCharge').value = localStorage.getItem('choyxona_service_v4');
-            if(localStorage.getItem('choyxona_birthday_v4') === 'true') document.getElementById('birthdayMode').checked = true;
-            if(localStorage.getItem('choyxona_theme_v4') === 'dark') {
+            if(localStorage.getItem('choyxona_items_v5')) items = JSON.parse(localStorage.getItem('choyxona_items_v5'));
+            if(localStorage.getItem('choyxona_people_v5')) document.getElementById('peopleCount').value = localStorage.getItem('choyxona_people_v5');
+            if(localStorage.getItem('choyxona_service_v5')) document.getElementById('serviceCharge').value = localStorage.getItem('choyxona_service_v5');
+            if(localStorage.getItem('choyxona_birthday_v5') === 'true') document.getElementById('birthdayMode').checked = true;
+            if(localStorage.getItem('choyxona_theme_v5') === 'dark') {
                 document.body.classList.add('dark-mode');
                 document.getElementById('themeIcon').innerText = '☀️';
             }
